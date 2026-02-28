@@ -17,17 +17,23 @@ namespace OfCourseIStillLoveYou.Client
             Debug.Log("[OfCourseIStillLoveYou]: GrpcClient Connected to Server");
         }
 
-        public static void SendCameraTextureAsync(CameraData cameraData)
+        public static async void SendCameraTextureAsync(CameraData cameraData)
         {
-            _ = Client.SendCameraStreamAsync(new SendCameraStreamRequest()
+            try
             {
-                CameraId = cameraData.CameraId,
-                CameraName = cameraData.CameraName,
-                Speed = cameraData.Speed,
-                Altitude = cameraData.Altitude,
-                Texture = Google.Protobuf.ByteString.CopyFrom(cameraData.Texture)
-            });
-
+                await Client.SendCameraStreamAsync(new SendCameraStreamRequest()
+                {
+                    CameraId = cameraData.CameraId,
+                    CameraName = cameraData.CameraName,
+                    Speed = cameraData.Speed,
+                    Altitude = cameraData.Altitude,
+                    Texture = Google.Protobuf.ByteString.CopyFrom(cameraData.Texture)
+                });
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Log($"[OfCourseIStillLoveYou]: Failed to send camera data: {ex.Message}");
+            }
         }
 
     }

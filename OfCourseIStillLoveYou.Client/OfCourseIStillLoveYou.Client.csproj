@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\Dependencies\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Google.Protobuf, Version=3.8.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -66,9 +67,11 @@
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\Dependencies\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
