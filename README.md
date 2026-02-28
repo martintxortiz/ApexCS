@@ -1,59 +1,71 @@
-<p align="center">
-    <a href="https://paypal.me/jrodrigv"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg?style=flat&logo=paypal" alt="PayPal"/></a>
-    <a href="https://dev.azure.com/jrodrigv/Personal/_build/latest?definitionId=6&branchName=main"><img src="https://dev.azure.com/jrodrigv/Personal/_apis/build/status/jrodrigv.OfCourseIStillLoveYou?branchName=main" alt="Azure Devops"/></a>
-     <a href="../../releases"><img src="https://img.shields.io/github/downloads/jrodrigv/OfCourseIStillLoveYou/total.svg?style=flat&logo=github&logoColor=white" alt="Total downloads" /></a>
-          <a href="../../releases"><img src="https://img.shields.io/github/release/jrodrigv/OfCourseIStillLoveYou.svg?style=flat&logo=github&logoColor=white" alt="Latest release" /></a>
-</p>
+# Apex Camera System (KSP)
 
-# OfCourseIStillLoveYou
+Apex is a powerful camera extension and streaming system for Kerbal Space Program. It allows you to monitor your spacecraft's on-board cameras and effortlessly stream those live camera feeds to external programs—ideal for flight software, computer vision tasks (like OpenCV), or custom telemetry dashboards.
 
-KSP mod to display hullcam cameras views on different GUI inside or outside the game using a Desktop app and Server app.
+> Apex is a fork of the original **OfCourseIStillLoveYou (OCISLY)** mod. It builds upon OCISLY's foundation by strictly cleanly separating the UI from the streaming backend, enabling robust headless streams and server endpoints.
 
-## Requirements:
-* KSP 1.12.5
-* NET 7 runtime https://dotnet.microsoft.com/en-us/download/dotnet/7.0
-* Latest HullcamVDS https://github.com/linuxgurugamer/HullcamVDSContinued/releases
+## Features
 
-## Highly recommended mods:
-* Physics Range Extender
-* Scatterer 0.0838 or newer https://github.com/LGhassen/Scatterer/releases
-* If you want to use TUFX you need to use this version -> TUFX JR edition https://github.com/jrodrigv/TUFX/releases 
+- **Decoupled MJPEG Streaming Server:** Stream camera feeds in the background over HTTP directly to OpenCV or Python, even when the in-game camera windows are closed.
+- **Dynamic Field of View (FOV):** Seamlessly syncs with HullcamVDS FOV settings.
+- **In-Game Configuration:** Adjust resolution, HTTP stream ports, and streaming states on the fly from the Apex Toolbar UI.
+- **Professional Architecture:** Automatically hooks into flight scenes, correctly unregisters ghosts on scene changes, and drops dependencies on KSP's native UI elements for robust integration.
 
-## Mod Installation:
-* Download the zip file for Windows, Linux or Mac.
-* Copy the GameData folder into your KSP root folder
+## How to Connect Programmatically (Python / OpenCV)
 
-## Mod Configuration:
-Inside the settings.cfg file you can modify the Cameras resolution and server connection
+Apex runs an MJPEG HTTP server locally. Once a camera is actively transmitting (indicated by a **Green** light in the KSP Apex Toolbar UI), you can capture its video feed using standard CV2 in Python.
 
-```Settings
-{
-  EndPoint = localhost
-  Port = 5077
-  Width = 768
-  Height = 768
-}
+### 1. List Available Cameras
+You can view a list of all currently streaming camera IDs by sending a standard GET request to `/list`.
+
+```python
+import requests
+
+# Fetch the list of active camera IDs from Apex
+response = requests.get("http://localhost:8181/list")
+camera_ids = response.json()
+print("Available Cameras:", camera_ids)
+# Output: Available Cameras: ['2411', '8910']
 ```
-## Desktop & Server app setup:
-* Unzip the OfCourseIStillLoveYou.Server.zip and OfCourseIStillLoveYou.DesktopClient.zip
-* By default the mod, the server and the desktop client will connect to localhost:5077 but you can modify it:
-  * Server: *OfCourseIStillLoveYou.Server.exe --endpoint 192.168.1.8  --port 5001* .
-  * DesktopClient: Open the settings.json inside OfCourseIStillLoveYou.DesktopClient and modify the endpoint and port.
-  * Mod: Inside the mod folder there is a settings.cfg file with the endpoint and port.
-* Execute the OfCourseIStillLoveYou.Server.exe first, then OfCourseIStillLoveYou.DesktopClient.exe and finally start KSP
+*(KSP must be in an active Flight scene).*
 
-## Running the server as a Docker Container
-* Pull the image *docker pull jrodrigv/ofcourseistillloveyou:latest*
-* Create a new container - example overriding endpoint to listen everything and from port 5000: *docker run -d -p 192.168.0.14:5000:5000 ofcourseistillloveyou:server_v1.0 --port 5000 --endpoint 0.0.0.0*
+### 2. Stream a Camera
+You can read from the stream natively with `cv2.VideoCapture()`. Pass the `http://localhost:8181/cam/{cameraId}` URL directly to OpenCV.
 
-## Desktop Client usage
-* To hide all the UI controls & telemetry, double click on the camera image view
-* To move the window, click and drag from the camera image view
-* To resise the window, click and drag from the resize texture corner (bottom - right corner)
-* To close the UI, press the "X" button
+```python
+import cv2
 
-## Mod usage
+# Use one of the camera IDs from the /list endpoint
+camera_id = "2411"
+url = f"http://localhost:8181/cam/{camera_id}"
 
-Take a look to this video tutorial :)
+cap = cv2.VideoCapture(url)
 
-https://youtu.be/OV0Z4xpFYlA
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Stream ended or failed to connect.")
+        break
+        
+    cv2.imshow('Apex Camera Stream', frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+```
+
+## Configuration
+
+You can configure Apex directly from the Flight Scene toolbar:
+1. Click the **Apex Camera System** icon.
+2. Click **Show Config**.
+3. Adjust the **Width / Height** to your preferring processing resolution.
+4. Set the **MJPEG Port** (Default `8181`) or **gRPC Port** if running custom external binaries. 
+
+*(Changes to ports require a game restart to bind correctly).*
+
+## Dependencies
+- [HullcamVDS Continued](https://forum.kerbalspaceprogram.com/topic/145633-112x-hullcam-vds-continued/)
+- ModuleManager
