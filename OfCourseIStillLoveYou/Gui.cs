@@ -24,7 +24,7 @@ namespace OfCourseIStillLoveYou
         private Rect _windowRect;
 
         private bool _showConfig = false;
-        private string _cfgWidth, _cfgHeight, _cfgMjpegPort, _cfgGrpcPort;
+        private string _cfgWidth, _cfgHeight, _cfgMjpegPort;
 
         private static readonly GUIStyle CenterLabelStyle = new GUIStyle()
             { alignment = TextAnchor.UpperCenter, normal = { textColor = Color.white } };
@@ -50,7 +50,6 @@ namespace OfCourseIStillLoveYou
             _cfgWidth = Settings.Width.ToString();
             _cfgHeight = Settings.Height.ToString();
             _cfgMjpegPort = Settings.MjpegPort.ToString();
-            _cfgGrpcPort = Settings.Port.ToString();
         }
 
         private Texture2D MakeSolidColorTexture(int width, int height, Color col)
@@ -147,21 +146,21 @@ namespace OfCourseIStillLoveYou
             _cfgMjpegPort = GUI.TextField(new Rect(LeftIndent + 80, curY, ContentWidth - 80, 20), _cfgMjpegPort);
             curY += 22;
 
-            GUI.Label(new Rect(LeftIndent, curY, 80, 20), "gRPC Port");
-            _cfgGrpcPort = GUI.TextField(new Rect(LeftIndent + 80, curY, ContentWidth - 80, 20), _cfgGrpcPort);
-            curY += 22;
-
-            if (GUI.Button(new Rect(LeftIndent, curY, ContentWidth, 20), "Apply Settings (Restart for Ports)"))
+            if (GUI.Button(new Rect(LeftIndent, curY, ContentWidth, 20), "Apply Config & Restart Server"))
             {
                 int.TryParse(_cfgWidth, out int w);
                 int.TryParse(_cfgHeight, out int h);
                 int.TryParse(_cfgMjpegPort, out int cp);
-                int.TryParse(_cfgGrpcPort, out int gp);
                 Settings.Width = w > 0 ? w : Settings.Width;
                 Settings.Height = h > 0 ? h : Settings.Height;
-                Settings.MjpegPort = cp > 0 ? cp : Settings.MjpegPort;
-                Settings.Port = gp > 0 ? gp : Settings.Port;
-                // Currently only applies dynamically to new objects, requires restart to bind new ports.
+                
+                if (cp > 0 && cp != Settings.MjpegPort)
+                {
+                    Settings.MjpegPort = cp;
+                    // Dynamically restart the server if the port changed
+                    MjpegServer.Stop();
+                    MjpegServer.Start(Settings.MjpegPort);
+                }
             }
             curY += 25;
         }

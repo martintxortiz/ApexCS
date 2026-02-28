@@ -38,12 +38,7 @@
       <HintPath>..\Dependencies\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Grpc.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>packages\Grpc.Core.2.46.6\lib\net45\Grpc.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Grpc.Core.Api, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>packages\Grpc.Core.Api.2.46.6\lib\net45\Grpc.Core.Api.dll</HintPath>
-    </Reference>
+
     <Reference Include="HullcamVDSContinued">
       <HintPath>..\Dependencies\HullcamVDSContinued.dll</HintPath>
       <Private>False</Private>
@@ -143,10 +138,7 @@
     <Compile Include="TrackingCamera.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OfCourseIStillLoveYou.Client\OfCourseIStillLoveYou.Client.csproj">
-      <Project>{ffa6d494-83d7-4a7f-9a01-7fba88c65cbc}</Project>
-      <Name>OfCourseIStillLoveYou.Client</Name>
-    </ProjectReference>
+
     <ProjectReference Include="..\OfCourseIStillLoveYou.TUFX\OfCourseIStillLoveYou.TUFX.csproj">
       <Project>{D77C6684-5D8A-4E3C-BFE0-C2B8F54DBAAB}</Project>
       <Name>OfCourseIStillLoveYou.TUFX</Name>
@@ -204,23 +196,7 @@ xcopy /E /Y "$(ProjectDir)Distribution\GameData" "%25KSP_DIR%25\GameData"
 @echo Build/deploy complete!
 </PostBuildEvent>
   </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>
 
-SET ModName=OfCourseIStillLoveYou
-RD /S /Q $(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\
-MD $(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\
-
-xcopy /E /Y "$(ProjectDir)"..\Dependencies\win\grpc_csharp_ext.dll "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
-</PreBuildEvent>
-  </PropertyGroup>
-  <Import Project="packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets'))" />
-  </Target>
   <!-- <Target Name="BeforeBuild"> -->
   <!-- <ItemGroup> -->
   <!-- <AssemblyAttributes Include="AssemblyVersion"> -->

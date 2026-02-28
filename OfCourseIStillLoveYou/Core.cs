@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HullcamVDS;
-using OfCourseIStillLoveYou.Client;
+
 using UnityEngine;
 
 namespace OfCourseIStillLoveYou
@@ -15,14 +15,7 @@ namespace OfCourseIStillLoveYou
         private void Awake()
         {
             Log("Apex Core Awake - Initializing services...");
-            try
-            {
-                GrpcClient.ConnectToServer(Settings.EndPoint, Settings.Port);
-            }
-            catch (System.Exception e)
-            {
-                Log($"Failed to connect gRPC client: {e.Message}");
-            }
+
 
             try
             {
@@ -43,7 +36,7 @@ namespace OfCourseIStillLoveYou
                 cam.Disable();
             }
             TrackedCameras.Clear();
-            MjpegServer.Stop();
+            MjpegServer.ClearFrames();
         }
 
         private IEnumerator Start()

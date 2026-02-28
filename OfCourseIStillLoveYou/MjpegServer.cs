@@ -47,6 +47,11 @@ namespace OfCourseIStillLoveYou
             Debug.Log("[Apex]: MJPEG server stopped.");
         }
 
+        public static void ClearFrames()
+        {
+            _latestFrames.Clear();
+        }
+
         // Called from TrackingCamera after each frame is encoded.
         public static void PushFrame(string cameraId, byte[] jpegBytes)
         {

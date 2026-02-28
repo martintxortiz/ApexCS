@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HullcamVDS;
-using OfCourseIStillLoveYou.Client;
+
 using OfCourseIStillLoveYou.TUFX;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -72,15 +72,6 @@ namespace OfCourseIStillLoveYou
                         {
                             // Push to MJPEG server for cv2 / embedded access
                             MjpegServer.PushFrame(cameraId, _jpgTexture);
-
-                            GrpcClient.SendCameraTextureAsync(new CameraData
-                            {
-                                CameraId = cameraId,
-                                CameraName = Name,
-                                Speed = "",
-                                Altitude = "",
-                                Texture = _jpgTexture
-                            });
                         });
                 }
             );

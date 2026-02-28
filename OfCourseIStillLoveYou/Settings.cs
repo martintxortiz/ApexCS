@@ -7,8 +7,7 @@ namespace OfCourseIStillLoveYou
     public class Settings : MonoBehaviour
     {
         public static string SettingsConfigUrl = "GameData/OfCourseIStillLoveYou/settings.cfg";
-        public static int Port { get; set; }
-        public static string EndPoint { get; set; }
+
         public static bool ConfigLoaded { get; set; }
         public static int Width { get; set; } = 1280;
         public static int Height { get; set; } = 720;
@@ -36,11 +35,7 @@ namespace OfCourseIStillLoveYou
                 if (!fileNode.HasNode("Settings")) return;
 
                 ConfigNode settings = fileNode.GetNode("Settings");
-                EndPoint = settings.GetValue("EndPoint") ?? "localhost";
-                
-                string portStr = settings.GetValue("Port");
-                if (!string.IsNullOrEmpty(portStr) && int.TryParse(portStr, out int p))
-                    Port = p;
+
 
                 string wStr = settings.GetValue("Width");
                 if (!string.IsNullOrEmpty(wStr) && int.TryParse(wStr, out int w))
