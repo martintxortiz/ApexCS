@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HullcamVDS;
@@ -16,18 +16,10 @@ namespace OfCourseIStillLoveYou
         private const float Line = ButtonHeight + Gap;
         private const float ButtonWidth = 3 * ButtonHeight + 4 * Gap;
         private const float MaxCameraSize = 360;
-        private const string Altitude = "ALTITUDE: ", Km = " KM", Speed = "SPEED: ", Kmh = " KM/H";
-
         private static readonly float controlsStartY = 22;
-        private static readonly Font TelemetryFont = Font.CreateDynamicFontFromOSFont("Bahnschrift Semibold", 17);
 
         private static readonly GUIStyle ButtonStyle = new GUIStyle(HighLogic.Skin.button)
             {fontSize = 10, wordWrap = true};
-
-
-        private static readonly GUIStyle TelemetryGuiStyle = new GUIStyle()
-            {alignment = TextAnchor.MiddleCenter, normal = new GUIStyleState() {textColor = Color.white}, fontStyle = FontStyle.Bold, font = TelemetryFont };
-
 
         public static Texture2D ResizeTexture =
             GameDatabase.Instance.GetTexture("OfCourseIStillLoveYou/Textures/" + "resizeSquare", false);
@@ -54,9 +46,12 @@ namespace OfCourseIStillLoveYou
         public void ToogleCameras()
         {
             OddFrames = !OddFrames;
+            bool shouldRender = (StreamingEnabled || WindowOpen) && OddFrames;
+
             foreach (var camera in this._cameras)
             {
-                camera.enabled = OddFrames;
+                if (camera != null) 
+                    camera.enabled = shouldRender;
             }
         }
 
@@ -70,17 +65,23 @@ namespace OfCourseIStillLoveYou
             AsyncGPUReadback.Request(_texture2D, 0,
                 request =>
                 {
+                    var cameraId = Id.ToString();
                     Task.Run(() => _texture2D.LoadRawTextureData(request.GetData<byte>()))
-                        .ContinueWith(previous => _jpgTexture = _texture2D.EncodeToJPG())
-                        .ContinueWith(previous =>
+                        .ContinueWith(_ => { _jpgTexture = _texture2D.EncodeToJPG(); })
+                        .ContinueWith(_ =>
+                        {
+                            // Push to MJPEG server for cv2 / embedded access
+                            MjpegServer.PushFrame(cameraId, _jpgTexture);
+
                             GrpcClient.SendCameraTextureAsync(new CameraData
                             {
-                                CameraId = Id.ToString(),
+                                CameraId = cameraId,
                                 CameraName = Name,
-                                Speed = SpeedString,
-                                Altitude = AltitudeString,
+                                Speed = "",
+                                Altitude = "",
                                 Texture = _jpgTexture
-                            }));
+                            });
+                        });
                 }
             );
         }
@@ -91,6 +92,8 @@ namespace OfCourseIStillLoveYou
         {
             Id = id;
             _hullcamera = hullcamera;
+            // Cache name early so MJPEG endpoint ID is stable
+            Name = hullcamera.vessel.GetDisplayName() + "." + hullcamera.cameraName;
 
             TargetCamRenderTexture = new RenderTexture(Settings.Width, Settings.Height, 24, RenderTextureFormat.ARGB32)
             {
@@ -146,9 +149,9 @@ namespace OfCourseIStillLoveYou
         public bool ResizingWindow { get; set; }
 
         public float TargetWindowScale { get; set; } = 1;
-        public string AltitudeString { get; private set; }
-        public string SpeedString { get; private set; }
-        public bool StreamingEnabled { get; private set; }
+        public bool StreamingEnabled { get; set; }
+        public bool WindowOpen { get; set; } = false;
+        public bool MinimalUi { get; set; } = true;
 
         private Camera FindCamera(string cameraName)
         {
@@ -173,7 +176,7 @@ namespace OfCourseIStillLoveYou
             partNearCamera.transform.localRotation =
                 Quaternion.LookRotation(_hullcamera.cameraForward, _hullcamera.cameraUp);
             partNearCamera.transform.localPosition = _hullcamera.cameraPosition;
-            partNearCamera.fieldOfView = 50;
+            partNearCamera.fieldOfView = _hullcamera.cameraFoV;
             partNearCamera.targetTexture = TargetCamRenderTexture;
             partNearCamera.allowHDR = true;
             partNearCamera.allowMSAA = true;
@@ -197,7 +200,7 @@ namespace OfCourseIStillLoveYou
             partScaledCamera.transform.localRotation = Quaternion.identity;
             partScaledCamera.transform.localPosition = Vector3.zero;
             partScaledCamera.transform.localScale = Vector3.one;
-            partScaledCamera.fieldOfView = 50;
+            partScaledCamera.fieldOfView = _hullcamera.cameraFoV;
             partScaledCamera.targetTexture = TargetCamRenderTexture;
             partScaledCamera.allowHDR = true;
             partScaledCamera.allowMSAA = true;
@@ -220,7 +223,7 @@ namespace OfCourseIStillLoveYou
             galaxyCam.transform.position = Vector3.zero;
             galaxyCam.transform.localRotation = Quaternion.identity;
             galaxyCam.transform.localScale = Vector3.one;
-            galaxyCam.fieldOfView = 50;
+            galaxyCam.fieldOfView = _hullcamera.cameraFoV;
             galaxyCam.targetTexture = TargetCamRenderTexture;
             galaxyCam.allowHDR = true;
             galaxyCam.allowMSAA = true;
@@ -249,7 +252,7 @@ namespace OfCourseIStillLoveYou
 
         public void CreateGui()
         {
-            if (!Enabled) return;
+            if (!Enabled || !WindowOpen) return;
 
             if (_hullcamera == null || _hullcamera.vessel == null)
             {
@@ -282,8 +285,7 @@ namespace OfCourseIStillLoveYou
             GUI.DragWindow(new Rect(0, 0, _windowHeight - 18, 30));
             if (GUI.Button(new Rect(_windowWidth - 18, 2, 20, 16), "X", GUI.skin.button))
             {
-                Disable();
-                
+                WindowOpen = false;
                 return;
             }
 
@@ -291,8 +293,6 @@ namespace OfCourseIStillLoveYou
 
             // Right side control buttons
             DrawSideControlButtons(imageRect);
-
-            DrawTelemetry(imageRect);
 
 
             //resizing
@@ -332,25 +332,6 @@ namespace OfCourseIStillLoveYou
             return imageRect;
         }
 
-        private void DrawTelemetry(Rect imageRect)
-        {
-            if (MinimalUi) return;
-
-            var dataStyle = new GUIStyle(TelemetryGuiStyle)
-            {
-                fontSize = (int) Mathf.Clamp(16 * TargetWindowScale, 9, 17),
-            };
-
-            var targetRangeRect = new Rect(imageRect.x,
-                _adjCamImageHeightSize * 0.94f - (int) Mathf.Clamp(18 * TargetWindowScale, 9, 18), _adjCamImageWidthSize,
-                (int) Mathf.Clamp(18 * TargetWindowScale, 10, 18));
-
-
-            GUI.Label(targetRangeRect, String.Concat(AltitudeString, Environment.NewLine, SpeedString), dataStyle);
-        }
-
-        public bool MinimalUi { get; set; }
-
         private void DrawSideControlButtons(Rect imageRect)
         {
             if (MinimalUi) return;
@@ -368,14 +349,7 @@ namespace OfCourseIStillLoveYou
             }
         }
 
-        public void CalculateSpeedAltitude()
-        {
-            var altitudeInKm = (float) Math.Round(_hullcamera.vessel.altitude / 1000f, 1);
-            var speed = (int) Math.Round(_hullcamera.vessel.speed * 3.6f, 0);
-           
-            AltitudeString = string.Concat(Altitude, altitudeInKm.ToString("0.0"), Km);
-            SpeedString = string.Concat(Speed, speed, Kmh);
-        }
+
 
         private void UpdateTargetScale(float diff)
         {

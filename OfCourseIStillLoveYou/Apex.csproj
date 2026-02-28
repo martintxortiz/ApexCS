@@ -7,8 +7,8 @@
     <ProjectGuid>{5700AE10-DAE5-40AA-BBFE-B22D08B97612}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OfCourseIStillLoveYou</RootNamespace>
-    <AssemblyName>OfCourseIStillLoveYou</AssemblyName>
+    <RootNamespace>Apex</RootNamespace>
+    <AssemblyName>Apex</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>Distribution\GameData\OfCourseIStillLoveYou\Plugins\</OutputPath>
+    <OutputPath>Distribution\GameData\Apex\Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -38,12 +38,7 @@
       <HintPath>..\Dependencies\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Grpc.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>packages\Grpc.Core.2.46.6\lib\net45\Grpc.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Grpc.Core.Api, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
-      <HintPath>packages\Grpc.Core.Api.2.46.6\lib\net45\Grpc.Core.Api.dll</HintPath>
-    </Reference>
+
     <Reference Include="HullcamVDSContinued">
       <HintPath>..\Dependencies\HullcamVDSContinued.dll</HintPath>
       <Private>False</Private>
@@ -143,13 +138,10 @@
     <Compile Include="TrackingCamera.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OfCourseIStillLoveYou.Client\OfCourseIStillLoveYou.Client.csproj">
-      <Project>{ffa6d494-83d7-4a7f-9a01-7fba88c65cbc}</Project>
-      <Name>OfCourseIStillLoveYou.Client</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OfCourseIStillLoveYou.TUFX\OfCourseIStillLoveYou.TUFX.csproj">
+
+    <ProjectReference Include="..\Apex.TUFX\Apex.TUFX.csproj">
       <Project>{D77C6684-5D8A-4E3C-BFE0-C2B8F54DBAAB}</Project>
-      <Name>OfCourseIStillLoveYou.TUFX</Name>
+      <Name>Apex.TUFX</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -160,13 +152,13 @@
     <PostBuildEvent>
 
 @echo $(Targetname)
-SET ModName=OfCourseIStillLoveYou
+SET ModName=Apex
 
 rem this step strips the solutionName from the git path to give us the root folder for locating the LocalDev Folder
 rem the echo commands are commented.  used for testing of the desired path.
 set GIT_PATH=$(SolutionDir)
 rem @echo %25GIT_PATH%25
-set GIT_PATH=%25GIT_PATH:OfCourseIStillLoveYou\=%25
+set GIT_PATH=%25GIT_PATH:Apex\=%25
 rem @echo %25GIT_PATH%25
 
 @echo ...
@@ -178,7 +170,7 @@ set /p DIST_DIR=&lt;"%25GIT_PATH%25_LocalDev\dist_dir.txt"
 
 @echo Copying assemblies to Distribution $(Targetname) files...
 if not exist "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\" mkdir "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
-xcopy /E /Y "$(TargetDir)"OfCourseIStillLoveYou*.dll "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
+xcopy /E /Y "$(TargetDir)"Apex*.dll "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
 
 @echo Deleting unwanted assemblies
 del "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\System.Memory.dll"
@@ -199,20 +191,15 @@ xcopy /E /Y "$(ProjectDir)Distribution\GameData" "%25KSP_DIR%25\GameData"
   <PropertyGroup>
     <PreBuildEvent>
 
-SET ModName=OfCourseIStillLoveYou
+SET ModName=Apex
 RD /S /Q $(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\
 MD $(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\
 
 xcopy /E /Y "$(ProjectDir)"..\Dependencies\win\grpc_csharp_ext.dll "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
 </PreBuildEvent>
   </PropertyGroup>
-  <Import Project="packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets'))" />
-  </Target>
+    <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    </Target>
   <!-- <Target Name="BeforeBuild"> -->
   <!-- <ItemGroup> -->
   <!-- <AssemblyAttributes Include="AssemblyVersion"> -->

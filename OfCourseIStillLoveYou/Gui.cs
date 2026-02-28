@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HullcamVDS;
 using KSP.UI.Screens;
 using UnityEngine;
@@ -8,8 +8,9 @@ namespace OfCourseIStillLoveYou
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class Gui : MonoBehaviour
     {
-        private const string ModTitle = "Of Course I Still Love you";
-        private const float WindowWidth = 250;
+        private const string ModTitle = "Apex Camera System";
+
+        private const float WindowWidth = 280;
         private const float DraggableHeight = 40;
         private const float LeftIndent = 12;
         private const float ContentTop = 20;
@@ -17,27 +18,49 @@ namespace OfCourseIStillLoveYou
         public static bool GuiEnabled;
         public static bool HasAddedButton;
         private const float ContentWidth = WindowWidth - 2 * LeftIndent;
-        private const float EntryHeight = 20;
+        private const float EntryHeight = 22;
         private bool _gameUiToggle;
         private float _windowHeight = 250;
         private Rect _windowRect;
 
-  
+        private bool _showConfig = false;
+        private string _cfgWidth, _cfgHeight, _cfgMjpegPort, _cfgGrpcPort;
+
         private static readonly GUIStyle CenterLabelStyle = new GUIStyle()
-        { alignment = TextAnchor.UpperCenter, normal = { textColor = Color.white } };
+            { alignment = TextAnchor.UpperCenter, normal = { textColor = Color.white } };
 
         private static readonly GUIStyle TitleStyle = new GUIStyle(CenterLabelStyle)
         {
-            fontSize = 10,
+            fontSize = 11,
+            fontStyle = FontStyle.Bold,
             alignment = TextAnchor.MiddleCenter
         };
 
+        private Texture2D _greenTex;
+        private Texture2D _redTex;
+
         void Awake()
         {
-            if (Fetch)
-                Destroy(Fetch);
-
+            if (Fetch) Destroy(Fetch);
             Fetch = this;
+
+            _greenTex = MakeSolidColorTexture(16, 16, new Color(0.2f, 0.8f, 0.2f));
+            _redTex = MakeSolidColorTexture(16, 16, new Color(0.8f, 0.2f, 0.2f));
+
+            _cfgWidth = Settings.Width.ToString();
+            _cfgHeight = Settings.Height.ToString();
+            _cfgMjpegPort = Settings.MjpegPort.ToString();
+            _cfgGrpcPort = Settings.Port.ToString();
+        }
+
+        private Texture2D MakeSolidColorTexture(int width, int height, Color col)
+        {
+            var pix = new Color[width * height];
+            for (int i = 0; i < pix.Length; ++i) pix[i] = col;
+            var result = new Texture2D(width, height);
+            result.SetPixels(pix);
+            result.Apply();
+            return result;
         }
 
         void Start()
@@ -54,95 +77,134 @@ namespace OfCourseIStillLoveYou
             if (GuiEnabled && _gameUiToggle)
             {
                 _windowRect = GUI.Window(1850, _windowRect, GuiWindow, "");
-                UpdateAllCameras();
             }
+            // Need to update cameras regardless of toolbar window visibility so popups stay open
+            UpdateAllCameras();
         }
 
         void LateUpdate()
         {
-            RemoveDisabledCameras();
+            RemoveDestroyedCameras();
         }
 
-        private void RemoveDisabledCameras()
+        private void RemoveDestroyedCameras()
         {
             var camerasToDelete = new List<int>();
 
             foreach (var trackingCamera in Core.TrackedCameras)
-                if (CameraHasToBeDeleted(trackingCamera.Value))
+            {
+                if (trackingCamera.Value.Vessel == null || !trackingCamera.Value.Vessel.loaded)
                 {
                     trackingCamera.Value.Disable();
                     camerasToDelete.Add(trackingCamera.Value.Id);
                 }
+            }
 
             foreach (var cameraId in camerasToDelete) Core.TrackedCameras.Remove(cameraId);
-        }
-
-        private bool CameraHasToBeDeleted(TrackingCamera trackingCamera)
-        {
-            return !trackingCamera.Enabled || trackingCamera.Vessel == null || !trackingCamera.Vessel.loaded;
         }
 
         private void GuiWindow(int windowId)
         {
             GUI.DragWindow(new Rect(0, 0, WindowWidth, DraggableHeight));
-            var line = 0;
+            float curY = ContentTop;
 
-            DrawTitle();
-            line++;
+            GUI.Label(new Rect(0, 0, WindowWidth, 20), ModTitle, TitleStyle);
+            curY += 25;
 
-            foreach (var muMechModuleHullCamera in Core.GetAllTrackingCameras())
+            // Config Toggle
+            if (GUI.Button(new Rect(LeftIndent, curY, ContentWidth, EntryHeight), _showConfig ? "Hide Config" : "Show Config"))
             {
-                line++;
+                _showConfig = !_showConfig;
+            }
+            curY += EntryHeight + 5;
 
-                if (!Core.TrackedCameras.ContainsKey(muMechModuleHullCamera.GetInstanceID()))
-                    DrawCameraButton(muMechModuleHullCamera, line);
+            if (_showConfig)
+            {
+                DrawConfigPanel(ref curY);
             }
 
-            line++;
+            // Draw Camera List
+            foreach (var camKV in Core.TrackedCameras)
+            {
+                DrawCameraRow(camKV.Value, ref curY);
+            }
 
-            _windowHeight = ContentTop + line * EntryHeight + EntryHeight + EntryHeight;
+            _windowHeight = curY + 20;
             _windowRect.height = _windowHeight;
+        }
+
+        private void DrawConfigPanel(ref float curY)
+        {
+            GUI.Label(new Rect(LeftIndent, curY, 80, 20), "Width");
+            _cfgWidth = GUI.TextField(new Rect(LeftIndent + 80, curY, ContentWidth - 80, 20), _cfgWidth);
+            curY += 22;
+
+            GUI.Label(new Rect(LeftIndent, curY, 80, 20), "Height");
+            _cfgHeight = GUI.TextField(new Rect(LeftIndent + 80, curY, ContentWidth - 80, 20), _cfgHeight);
+            curY += 22;
+
+            GUI.Label(new Rect(LeftIndent, curY, 80, 20), "MJPEG Port");
+            _cfgMjpegPort = GUI.TextField(new Rect(LeftIndent + 80, curY, ContentWidth - 80, 20), _cfgMjpegPort);
+            curY += 22;
+
+            GUI.Label(new Rect(LeftIndent, curY, 80, 20), "gRPC Port");
+            _cfgGrpcPort = GUI.TextField(new Rect(LeftIndent + 80, curY, ContentWidth - 80, 20), _cfgGrpcPort);
+            curY += 22;
+
+            if (GUI.Button(new Rect(LeftIndent, curY, ContentWidth, 20), "Apply Settings (Restart for Ports)"))
+            {
+                int.TryParse(_cfgWidth, out int w);
+                int.TryParse(_cfgHeight, out int h);
+                int.TryParse(_cfgMjpegPort, out int cp);
+                int.TryParse(_cfgGrpcPort, out int gp);
+                Settings.Width = w > 0 ? w : Settings.Width;
+                Settings.Height = h > 0 ? h : Settings.Height;
+                Settings.MjpegPort = cp > 0 ? cp : Settings.MjpegPort;
+                Settings.Port = gp > 0 ? gp : Settings.Port;
+                // Currently only applies dynamically to new objects, requires restart to bind new ports.
+            }
+            curY += 25;
+        }
+
+        private void DrawCameraRow(TrackingCamera camera, ref float curY)
+        {
+            // Indicator box
+            var tex = camera.StreamingEnabled ? _greenTex : _redTex;
+            GUI.DrawTexture(new Rect(LeftIndent, curY + 4, 12, 12), tex);
+
+            // Name label (truncated if long)
+            string name = camera.Name;
+            if (name.Length > 18) name = name.Substring(0, 16) + "..";
+            GUI.Label(new Rect(LeftIndent + 18, curY + 2, 110, 20), name);
+
+            // Toggle Stream Button
+            if (GUI.Button(new Rect(LeftIndent + 125, curY, 55, 18), camera.StreamingEnabled ? "Stop" : "Stream"))
+            {
+                camera.StreamingEnabled = !camera.StreamingEnabled;
+            }
+
+            // Toggle View Button
+            if (GUI.Button(new Rect(LeftIndent + 185, curY, 55, 18), camera.WindowOpen ? "Hide" : "View"))
+            {
+                camera.WindowOpen = !camera.WindowOpen;
+                // Ensure it's marked as minimally UI on open by default to limit screen clutter
+                if (camera.WindowOpen) camera.MinimalUi = true;
+            }
+
+            curY += 22;
         }
 
         private void UpdateAllCameras()
         {
-            foreach (var trackingCamera in Core.TrackedCameras)
-                if (trackingCamera.Value.Enabled)
+            foreach (var trackingCamera in Core.TrackedCameras.Values)
+            {
+                // Update tracking UI logic regardless of toolbar state
+                if (trackingCamera.Enabled && trackingCamera.WindowOpen)
                 {
-                    trackingCamera.Value.CheckIfResizing();
-                    trackingCamera.Value.CreateGui();
+                    trackingCamera.CheckIfResizing();
+                    trackingCamera.CreateGui();
                 }
-        }
-
-        private string GetCameraName(MuMechModuleHullCamera muMechModuleHullCamera)
-        {
-            return muMechModuleHullCamera.vessel.GetDisplayName() + "." + muMechModuleHullCamera.cameraName;
-        }
-
-
-        private void DrawTitle()
-        {
-            GUI.Label(new Rect(0, 0, WindowWidth, 20), ModTitle, TitleStyle);
-        }
-
-        private void DrawCameraButton(MuMechModuleHullCamera camera, int line)
-        {
-            var saveRect = new Rect(LeftIndent, ContentTop + line * EntryHeight, ContentWidth, EntryHeight);
-
-            if (GUI.Button(saveRect, GetCameraName(camera))) OpenCameraInstance(camera);
-        }
-
-        public void OpenCameraInstance(MuMechModuleHullCamera camera)
-        {
-            if (GuiEnabled && _gameUiToggle)
-                if (!Core.TrackedCameras.ContainsKey(camera.GetInstanceID()))
-                {
-                    var newCamera = new TrackingCamera(camera.GetInstanceID(), camera);
-
-                    //StartCoroutine(newCamera.SendCameraImage());
-
-                    Core.TrackedCameras.Add(camera.GetInstanceID(), newCamera);
-                }
+            }
         }
 
         private void AddToolbarButton()
@@ -159,7 +221,7 @@ namespace OfCourseIStillLoveYou
         private void EnableGui()
         {
             GuiEnabled = true;
-            Core.Log(" Showing GUI");
+            Core.Log("Showing GUI");
         }
 
         private void DisableGui()
@@ -168,18 +230,8 @@ namespace OfCourseIStillLoveYou
             Core.Log("Hiding GUI");
         }
 
-        private void Dummy()
-        {
-        }
-
-        private void GameUiEnable()
-        {
-            _gameUiToggle = true;
-        }
-
-        private void GameUiDisable()
-        {
-            _gameUiToggle = false;
-        }
+        private void Dummy() { }
+        private void GameUiEnable() { _gameUiToggle = true; }
+        private void GameUiDisable() { _gameUiToggle = false; }
     }
 }

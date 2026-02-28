@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using HullcamVDS;
 using OfCourseIStillLoveYou.Client;
 using UnityEngine;
@@ -10,13 +10,66 @@ namespace OfCourseIStillLoveYou
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class Core : MonoBehaviour
     {
-        public static  Dictionary<int, TrackingCamera> TrackedCameras = new Dictionary<int, TrackingCamera>();
+        public static Dictionary<int, TrackingCamera> TrackedCameras = new Dictionary<int, TrackingCamera>();
 
         private void Awake()
         {
-            GrpcClient.ConnectToServer(Settings.EndPoint,Settings.Port);
+            Log("Apex Core Awake - Initializing services...");
+            try
+            {
+                GrpcClient.ConnectToServer(Settings.EndPoint, Settings.Port);
+            }
+            catch (System.Exception e)
+            {
+                Log($"Failed to connect gRPC client: {e.Message}");
+            }
+
+            try
+            {
+                // Attempt to bind to all interfaces; fallback to localhost if permission denied
+                MjpegServer.Start(Settings.MjpegPort);
+            }
+            catch (System.Exception e)
+            {
+                Log($"Failed to start MJPEG server: {e.Message}");
+            }
         }
 
+        private void OnDestroy()
+        {
+            Log("Apex Core Destroy - Tearing down services...");
+            foreach (var cam in TrackedCameras.Values)
+            {
+                cam.Disable();
+            }
+            TrackedCameras.Clear();
+            MjpegServer.Stop();
+        }
+
+        private IEnumerator Start()
+        {
+            // Wait until KSP flight scene is fully ready before scanning for cameras.
+            yield return new WaitUntil(() => FlightGlobals.ready);
+
+            AutoRegisterAllCameras();
+        }
+
+        // Registers every hull camera found on all loaded vessels and, if
+        // AutoStartStreaming is enabled in settings, activates streaming immediately.
+        private void AutoRegisterAllCameras()
+        {
+            foreach (var camera in GetAllTrackingCameras())
+            {
+                int id = camera.GetInstanceID();
+                if (TrackedCameras.ContainsKey(id)) continue;
+
+                var tracked = new TrackingCamera(id, camera);
+                tracked.StreamingEnabled = Settings.AutoStartStreaming;
+                TrackedCameras.Add(id, tracked);
+
+                Log($"Camera registered: {camera.cameraName} | Streaming: {tracked.StreamingEnabled}");
+            }
+        }
 
         public static void Log(string message)
         {
@@ -25,15 +78,11 @@ namespace OfCourseIStillLoveYou
 
         public static List<MuMechModuleHullCamera> GetAllTrackingCameras()
         {
-            List<MuMechModuleHullCamera> result = new List<MuMechModuleHullCamera>();
-
+            var result = new List<MuMechModuleHullCamera>();
             if (!FlightGlobals.ready) return result;
 
-
             foreach (var vessel in FlightGlobals.VesselsLoaded)
-            {
                 result.AddRange(vessel.FindPartModulesImplementing<MuMechModuleHullCamera>());
-            }
 
             return result;
         }
@@ -48,25 +97,19 @@ namespace OfCourseIStillLoveYou
             Refresh();
         }
 
-
         private void Refresh()
         {
-            foreach (var trackedCamerasValue in TrackedCameras.Values.Where(trackedCamerasValue => trackedCamerasValue.Enabled))
+            foreach (var cam in TrackedCameras.Values.Where(c => c.Enabled))
             {
-                if (!trackedCamerasValue.OddFrames) continue;
-               
-                trackedCamerasValue.CalculateSpeedAltitude();
-                trackedCamerasValue.SendCameraImage();
-               
+                if (!cam.OddFrames) continue;
+                cam.SendCameraImage();
             }
         }
 
         private void ToggleRender()
         {
-            foreach (var trackedCamerasValue in TrackedCameras.Values.Where(trackedCamerasValue => trackedCamerasValue.Enabled))
-            {
-                trackedCamerasValue.ToogleCameras();
-            }
+            foreach (var cam in TrackedCameras.Values.Where(c => c.Enabled))
+                cam.ToogleCameras();
         }
     }
 }
