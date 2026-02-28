@@ -1,8 +1,5 @@
 ﻿MSBuild version 17.14.40+3e7442088 for .NET Framework
 
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Server\OfCourseIStillLoveYou.Server.csproj : warning NU1503: Skipping restore for project 'C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Server\OfCourseIStillLoveYou.Server.csproj'. The project file may be invalid or missing targets required for restore. [C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou\OfCourseIStillLoveYou.sln]
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Communication\OfCourseIStillLoveYou.Communication.csproj : warning NU1503: Skipping restore for project 'C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Communication\OfCourseIStillLoveYou.Communication.csproj'. The project file may be invalid or missing targets required for restore. [C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou\OfCourseIStillLoveYou.sln]
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.DesktopClient\OfCourseIStillLoveYou.DesktopClient.csproj : warning NU1503: Skipping restore for project 'C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.DesktopClient\OfCourseIStillLoveYou.DesktopClient.csproj'. The project file may be invalid or missing targets required for restore. [C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou\OfCourseIStillLoveYou.sln]
   Determining projects to restore...
   Nothing to do. None of the projects specified contain packages to restore.
 MSBuild version 17.14.40+3e7442088 for .NET Framework
@@ -10,9 +7,3 @@ MSBuild version 17.14.40+3e7442088 for .NET Framework
   OfCourseIStillLoveYou.Client -> C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Client\bin\Release\OfCourseIStillLoveYou.Client.dll
   OfCourseIStillLoveYou.TUFX -> C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.TUFX\bin\Release\OfCourseIStillLoveYou.TUFX.dll
   OfCourseIStillLoveYou -> C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou\Distribution\GameData\OfCourseIStillLoveYou\Plugins\OfCourseIStillLoveYou.dll
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Server\OfCourseIStillLoveYou.Server.csproj : error : Could not resolve SDK "Microsoft.NET.Sdk". Exactly one of the probing messages below indicates why we could not resolve the SDK. Investigate and resolve that message to correctly specify the SDK.
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Server\OfCourseIStillLoveYou.Server.csproj : error :   The NuGetSdkResolver did not resolve this SDK because there was no version specified in the project or global.json.
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Server\OfCourseIStillLoveYou.Server.csproj : error :   MSB4276: The default SDK resolver failed to resolve SDK "Microsoft.NET.Sdk" because directory "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Sdks\Microsoft.NET.Sdk\Sdk" did not exist.
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Server\OfCourseIStillLoveYou.Server.csproj : error MSB4236: The SDK 'Microsoft.NET.Sdk' specified could not be found.
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.Communication\OfCourseIStillLoveYou.Communication.csproj : error MSB4236: The SDK 'Microsoft.NET.Sdk' specified could not be found.
-C:\Users\Lowgo\OneDrive\Desktop\ApexCS\OfCourseIStillLoveYou.DesktopClient\OfCourseIStillLoveYou.DesktopClient.csproj : error MSB4236: The SDK 'Microsoft.NET.Sdk' specified could not be found.

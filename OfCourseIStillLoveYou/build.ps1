@@ -20,8 +20,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$solutionFile = Join-Path $PSScriptRoot "OfCourseIStillLoveYou.sln"
-
+$solutionFile = Join-Path $PSScriptRoot "OfCourseIStillLoveYou.csproj"
 Write-Host "--- Starting Build for OfCourseIStillLoveYou ---" -ForegroundColor Cyan
 
 # 1. Check for tools
