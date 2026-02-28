@@ -27,7 +27,7 @@ camera_ids = response.json()
 print("Available Cameras:", camera_ids)
 # Output: Available Cameras: ['2411', '8910']
 ```
-*(If you experience connection errors, make sure KSP is in an active Flight scene and the Apex MJPEG server port matches your configuration).*
+*(KSP must be in an active Flight scene).*
 
 ### 2. Stream a Camera
 You can read from the stream natively with `cv2.VideoCapture()`. Pass the `http://localhost:8181/cam/{cameraId}` URL directly to OpenCV.

@@ -10,8 +10,8 @@ namespace OfCourseIStillLoveYou
         public static int Port { get; set; }
         public static string EndPoint { get; set; }
         public static bool ConfigLoaded { get; set; }
-        public static int Width { get; set; }
-        public static int Height { get; set; }
+        public static int Width { get; set; } = 1280;
+        public static int Height { get; set; } = 720;
         public static bool AutoStartStreaming { get; set; } = true;
         public static int MjpegPort { get; set; } = 8181;
 
