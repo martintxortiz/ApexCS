@@ -9,6 +9,7 @@
     <PackageReference Include="Avalonia" Version="0.10.18" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.18" />
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
    </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OfCourseIStillLoveYou.Communication\OfCourseIStillLoveYou.Communication.csproj" />
