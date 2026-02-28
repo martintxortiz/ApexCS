@@ -29,16 +29,16 @@ $useDotnet = $false
 $msbuildPath = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\amd64\MSBuild.exe"
 
 Write-Host "Restoring NuGet packages..." -ForegroundColor Gray
-& $msbuildPath $solutionFile /t:Restore /p:Configuration=$Configuration /v:m | Out-File -FilePath "build.log"
+& $msbuildPath $solutionFile /t:Restore /p:Configuration=$Configuration /v:m /clp:NoSummary | Out-File -FilePath "build.log" -Encoding utf8
 
 Write-Host "Building solution ($Configuration)..." -ForegroundColor Gray
-$msbuildArgs = @($solutionFile, "/p:Configuration=$Configuration", "/v:m")
+$msbuildArgs = @($solutionFile, "/p:Configuration=$Configuration", "/v:m", "/clp:NoSummary")
 if ($SkipEvents) {
     $msbuildArgs += "/p:PreBuildEvent="
     $msbuildArgs += "/p:PostBuildEvent="
 }
 
-& $msbuildPath $msbuildArgs | Out-File -FilePath "build.log" -Append
+& $msbuildPath $msbuildArgs | Out-File -FilePath "build.log" -Append -Encoding utf8
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build Failed with exit code $LASTEXITCODE. Check build.log for details." -ForegroundColor Red
     exit 1
