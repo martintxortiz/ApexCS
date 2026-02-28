@@ -7,12 +7,13 @@ namespace OfCourseIStillLoveYou
     public class Settings : MonoBehaviour
     {
         public static string SettingsConfigUrl = "GameData/OfCourseIStillLoveYou/settings.cfg";
-
+        public static int Port { get; set; }
+        public static string EndPoint { get; set; }
         public static bool ConfigLoaded { get; set; }
-        public static int Width { get; set; } = 1280;
-        public static int Height { get; set; } = 720;
+        public static int Width { get; set; }
+        public static int Height { get; set; }
+        public static float CameraFov { get; set; } = 120f;
         public static bool AutoStartStreaming { get; set; } = true;
-        public static int MjpegPort { get; set; } = 8181;
 
         void Awake()
         {
@@ -27,31 +28,21 @@ namespace OfCourseIStillLoveYou
                 Debug.Log("[OfCourseIStillLoveYou]: Loading settings.cfg ==");
 
                 ConfigNode fileNode = ConfigNode.Load(SettingsConfigUrl);
-                if (fileNode == null) 
-                {
-                    Debug.Log("[OfCourseIStillLoveYou]: settings.cfg not found, using default values.");
-                    return;
-                }
                 if (!fileNode.HasNode("Settings")) return;
 
                 ConfigNode settings = fileNode.GetNode("Settings");
+                EndPoint = settings.GetValue("EndPoint");
+                Port = int.Parse(settings.GetValue("Port"));
+                Width = int.Parse(settings.GetValue("Width"));
+                Height = int.Parse(settings.GetValue("Height"));
 
-
-                string wStr = settings.GetValue("Width");
-                if (!string.IsNullOrEmpty(wStr) && int.TryParse(wStr, out int w))
-                    Width = w;
-                
-                string hStr = settings.GetValue("Height");
-                if (!string.IsNullOrEmpty(hStr) && int.TryParse(hStr, out int h))
-                    Height = h;
+                string fovStr = settings.GetValue("CameraFov");
+                if (!string.IsNullOrEmpty(fovStr))
+                    CameraFov = float.Parse(fovStr);
 
                 string autoStr = settings.GetValue("AutoStartStreaming");
-                if (!string.IsNullOrEmpty(autoStr) && bool.TryParse(autoStr, out bool a))
-                    AutoStartStreaming = a;
-
-                string mjpegStr = settings.GetValue("MjpegPort");
-                if (!string.IsNullOrEmpty(mjpegStr) && int.TryParse(mjpegStr, out int m))
-                    MjpegPort = m;
+                if (!string.IsNullOrEmpty(autoStr))
+                    AutoStartStreaming = bool.Parse(autoStr);
             }
             catch (Exception ex)
             {

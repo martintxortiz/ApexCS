@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HullcamVDS;
-
+using OfCourseIStillLoveYou.Client;
 using UnityEngine;
 
 namespace OfCourseIStillLoveYou
@@ -14,29 +14,7 @@ namespace OfCourseIStillLoveYou
 
         private void Awake()
         {
-            Log("Apex Core Awake - Initializing services...");
-
-
-            try
-            {
-                // Attempt to bind to all interfaces; fallback to localhost if permission denied
-                MjpegServer.Start(Settings.MjpegPort);
-            }
-            catch (System.Exception e)
-            {
-                Log($"Failed to start MJPEG server: {e.Message}");
-            }
-        }
-
-        private void OnDestroy()
-        {
-            Log("Apex Core Destroy - Tearing down services...");
-            foreach (var cam in TrackedCameras.Values)
-            {
-                cam.Disable();
-            }
-            TrackedCameras.Clear();
-            MjpegServer.ClearFrames();
+            GrpcClient.ConnectToServer(Settings.EndPoint, Settings.Port);
         }
 
         private IEnumerator Start()
@@ -95,6 +73,7 @@ namespace OfCourseIStillLoveYou
             foreach (var cam in TrackedCameras.Values.Where(c => c.Enabled))
             {
                 if (!cam.OddFrames) continue;
+                cam.CalculateSpeedAltitude();
                 cam.SendCameraImage();
             }
         }
