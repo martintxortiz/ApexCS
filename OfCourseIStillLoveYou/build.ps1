@@ -3,6 +3,11 @@ $ErrorActionPreference = "Stop"
 $msbuild = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
 $fw = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319"
 
+Write-Host "Cleaning previous build artifacts..." -ForegroundColor Yellow
+if (Test-Path -Path "Distribution\GameData\OfCourseIStillLoveYou\Plugins") {
+    Remove-Item -Path "Distribution\GameData\OfCourseIStillLoveYou\Plugins\*" -Recurse -Force
+}
+
 Write-Host "Building ApexCS Project..." -ForegroundColor Cyan
 
 # 1. Build the solution
@@ -29,7 +34,8 @@ if ($choice -eq 'y') {
         Write-Host "Deploying files to KSP GameData..." -ForegroundColor Cyan
         Copy-Item -Path "Distribution\GameData\OfCourseIStillLoveYou\Plugins\*" -Destination "$kspPath\Plugins" -Recurse -Force
         Write-Host "Deployment successful! You can start the game." -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "Creating OfCourseIStillLoveYou directory in GameData..."
         New-Item -ItemType Directory -Force -Path $kspPath | Out-Null
         Copy-Item -Path "Distribution\GameData\OfCourseIStillLoveYou\*" -Destination $kspPath -Recurse -Force
