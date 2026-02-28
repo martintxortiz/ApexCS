@@ -111,17 +111,30 @@ namespace OfCourseIStillLoveYou
             AsyncGPUReadback.Request(_texture2D, 0,
                 request =>
                 {
-                    Task.Run(() => _texture2D.LoadRawTextureData(request.GetData<byte>()))
-                        .ContinueWith(previous => _jpgTexture = _texture2D.EncodeToJPG())
-                        .ContinueWith(previous =>
-                            GrpcClient.SendCameraTextureAsync(new CameraData
-                            {
-                                CameraId = Id.ToString(),
-                                CameraName = Name,
-                                Speed = SpeedString,
-                                Altitude = AltitudeString,
-                                Texture = _jpgTexture
-                            }));
+                    if (request.hasError) return;
+
+                    try
+                    {
+                        // MUST be on main thread:
+                        _texture2D.LoadRawTextureData(request.GetData<byte>());
+                        _texture2D.Apply(false);
+                        _jpgTexture = _texture2D.EncodeToJPG();
+
+                        var cameraData = new CameraData
+                        {
+                            CameraId = Id.ToString(),
+                            CameraName = Name,
+                            Speed = SpeedString,
+                            Altitude = AltitudeString,
+                            Texture = _jpgTexture
+                        };
+
+                        Task.Run(() => GrpcClient.SendCameraTextureAsync(cameraData));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log($"[OfCourseIStillLoveYou]: Frame encode error: {ex.Message}");
+                    }
                 }
             );
         }

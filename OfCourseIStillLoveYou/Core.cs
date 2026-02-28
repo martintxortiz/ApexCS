@@ -14,7 +14,17 @@ namespace OfCourseIStillLoveYou
 
         private void Awake()
         {
-            GrpcClient.ConnectToServer(Settings.EndPoint, Settings.Port);
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    GrpcClient.ConnectToServer(Settings.EndPoint, Settings.Port);
+                }
+                catch (System.Exception ex)
+                {
+                    Log($"Failed to connect to GRPC Server: {ex.Message}");
+                }
+            });
         }
 
         private IEnumerator Start()

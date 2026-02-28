@@ -177,7 +177,7 @@ set /p DIST_DIR=&lt;"%25GIT_PATH%25_LocalDev\dist_dir.txt"
 
 @echo Copying assemblies to Distribution $(Targetname) files...
 if not exist "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\" mkdir "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
-xcopy /E /Y "$(TargetDir)"OfCourseIStillLoveYou*.dll "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
+xcopy /E /Y "$(TargetDir)*.dll" "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
 
 @echo Deleting unwanted assemblies
 del "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\System.Memory.dll"
@@ -199,10 +199,10 @@ xcopy /E /Y "$(ProjectDir)Distribution\GameData" "%25KSP_DIR%25\GameData"
     <PreBuildEvent>
 
 SET ModName=OfCourseIStillLoveYou
-RD /S /Q $(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\
-MD $(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\
+IF EXIST "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\" RD /S /Q "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
+MD "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
 
-xcopy /E /Y "$(ProjectDir)"..\Dependencies\win\grpc_csharp_ext.dll "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
+xcopy /I /Y "$(ProjectDir)..\Dependencies\win\grpc_csharp_ext.dll" "$(ProjectDir)Distribution\GameData\%25ModName%25\Plugins\"
 </PreBuildEvent>
   </PropertyGroup>
   <Import Project="packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
